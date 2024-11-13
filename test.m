@@ -4,3 +4,5 @@ x = 1;
 fprint("What is %d",x)
 
 print("New edit ")
+
+load( hi.mat)
