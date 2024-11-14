@@ -1,4 +1,4 @@
-print("hello world")
+fprintf("hello world")
 
 
 fprintf("bye")
