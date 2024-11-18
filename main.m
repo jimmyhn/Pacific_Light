@@ -4,16 +4,24 @@ N = length(ruptureData);
 x = 1:N; % number of data points
 T = ((3*60)+53)+0.2; % the time in seconds stated on the spreadsheet ~ 03:53.2
 fs = N/T; % sampling frequency
-voltageData = ruptureData(:,1);
+voltageData = ruptureData(:,1).*-1;
+bData = ruptureData(:,2).*-1;
+cData= ruptureData(:,3).*-1;
 
 f = (0:N-1)*(fs/N); % frequency vector
 
 figure
 plot(x,voltageData) % graph of raw voltage data over time points
 
+figure
+plot(x,bData)
+
+figure
+plot(x,cData)
+
 Xf = fft(voltageData);
 magnitudes = abs(Xf);
-
+%{
 figure
 plot(f(1:N),magnitudes(1:N)) % graph including DC component, and not adjusting for spectrum symmetry (Frequency domain graph)
 
@@ -41,3 +49,5 @@ figure
 plot(f(2:N/2+1),magnitudes(2:N/2+1)) % graph excluding DC component, and adjusting for spectrum symmetry (Frequency domain graph)
 
 % what does it mean?!?!?
+
+%}
