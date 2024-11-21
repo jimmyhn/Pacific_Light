@@ -1,0 +1,32 @@
+%{ 
+Notes from Botvinick
+Paper has trap stiffness (spring constant)
+.7 nm/V; conversion factor found in the data (solve for x)
+Normalization factor for the histogram is number of data points * bin width
+
+How to get from distance -> force; voltage -> velocity
+voltage -> distance is experimentally derived 
+Trap of the laser force is the spring constant*x  (F=kx)
+    x is defined as the distance between the center of the trap and the center of the bead
+If a bond forms between the bead and the cell, the shift can be calculated through the detector
+
+4 voltages are measured from the QBP (which is what is in the file)
+    x = (V2+V4) - (V1+V3)
+    ECG-like graph is measuring Vx, but needs to be converted into nm
+    Graph looks the same, but y-axis is nm
+    curve fit for the graph
+Turn nm into force
+    multiply nm by k (stiffness) to get graph into F (pN)
+
+3 columns of data: x, y, and sum
+    botvinick doesn't remember which one is which
+    We want the column with the higher magnitudes
+No Fourier transform in this project
+
+Force waveform is periodic, so cycles can be defined
+    Each cycle has a peak value, which is the rupture force
+He wants the histogram of what all the rupture values are
+Normalize the histogram to get the density (unsure about this part)
+
+Botvinick will try to find more data for us :D
+%}
