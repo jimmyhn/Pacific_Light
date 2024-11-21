@@ -4,31 +4,28 @@ t = ruptureData(:,1);
 voltageData = ruptureData(:,2);
 distanceData = ruptureData(:,3);
 forceData = ruptureData(:,4);
-fs = 1; 
+
 t = table2array(t);
 voltageData = table2array(voltageData);
 distanceData = table2array(distanceData);
 forceData = table2array(forceData);
-binWidth = 1;
-binEdges = 0:binWidth:max(t) + binWidth;
-avgForce = zeros(1,length(binEdges) - 1);
+posForceData = forceData(forceData>-0.5); % Could be normalized as well but it creates a field of smaller forces for some reason
+nForceData = (posForceData - min(posForceData)) / (max(posForceData)- min(posForceData)) * 50 ;
+binWidth = .1;
+binEdges = 0:binWidth:40;
 
-for i = 1: length(binEdges)-1
-    binStart = binEdges(i);
-    binEnd = binEdges(i+1);
-    indicesInBin = find (t>= binStart & t<binEnd);
+bin_counts = histcounts(nForceData,binEdges);
+prob_density = bin_counts / (sum(bin_counts) * binWidth);
+bin_centers = binEdges(1:end-1) + binWidth / 2;
 
-    forcesInBin = forceData(indicesInBin);
-    if ~isempty(forcedInBin)
-        avgForce(i) = mean(forcesInBin);
-    else    
-        avgForce(i) = NaN;
-    end
-end
+figure;
+bar(bin_centers, prob_density, 'FaceColor', 'k');
+xlabel ('Rupture force(pN)')
+ylabel ('Estimated probability density (1/pN)')
+xlim([0 40]);
+ylim([0 max(prob_density)*1.1]);
 
-
-figure
-
+figure;
 subplot(3,1,1)
 plot(t,voltageData)
 title("Voltage Vs. Time")
@@ -44,9 +41,3 @@ plot(t,forceData)
 title("Force (pN) Vs. Time")
 xlabel('Time(s)');
 ylabel('Force(pN)');
-
-figure
-bar(binEdges(1:end-1), avgForce, 'histc');
-title("BinnedData");
-xlabel('Time');
-ylabel('Average Force(pN)');

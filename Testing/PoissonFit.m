@@ -2,10 +2,10 @@ clear; clc; close all;
 
 %% "Calibration" Rupture Data 
 ruptureControl = readtable('Rupture Data Control.xlsx');
-time_exp = (3*60)+(53);
+time_exp = (3*60)+(53); 
 tc = linspace(1,time_exp,11194); % Time extraction
-xData = ruptureControl(:,2);
-yData = ruptureControl(:,3);
+yData = ruptureControl(:,2);
+xData = ruptureControl(:,3);
 sumData = ruptureControl(:,4);
 
 xData = table2array(xData) .* (-1);
@@ -55,10 +55,19 @@ figure;
 
 subplot(3,1,1)
 plot(tc, xData);
+title("Vx Data")
+xlabel('Time(s)');
+ylabel('Voltage(V)');
 subplot(3,1,2)
 plot(tc,yData);
+title("Vy Data")
+xlabel('Time(s)');
+ylabel('Voltage(V)');
 subplot(3,1,3)
 plot(tc,sumData);
+title("SumData")
+xlabel('Time(s)');
+ylabel('Voltage(V)');
 
 %% Raw Data Graphs
 
@@ -82,12 +91,15 @@ ylabel('Force(pN)');
 
 %% Poisson Distribution Graph
 figure
-histogram(nForceData, 'Normalization', 'pdf');
+histogram(forceData, 'BinWidth', 5, 'Normalization', 'pdf');
 hold on;
-plot (x, poissonPDF, 'r-', 'LineWidth', 2);
-title('Force Data Histogram & Fit');
-xlabel('Event Counts');
+
+scaledPoissonPDF = poissonPDF * numel(forceData) * 5;
+plot (x, scaledPoissonPDF, 'r-', 'LineWidth', 2);
+title('Force Distribution w/ Poisson Fit');
+xlabel('Force(pN)');
 ylabel('Probability Density');
+legend('Force Data', 'Poisson Fit');
 hold off;
 
 % Histogram Graph Individual
