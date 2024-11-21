@@ -1,4 +1,18 @@
 clear; clc; close all;
+
+%% "Calibration" Rupture Data 
+ruptureControl = readtable('Rupture Data Control.xlsx');
+time_exp = (3*60)+(53);
+tc = linspace(1,time_exp,11194); % Time extraction
+xData = ruptureControl(:,2);
+yData = ruptureControl(:,3);
+sumData = ruptureControl(:,4);
+
+xData = table2array(xData) .* (-1);
+yData = table2array(yData) .* (-1);
+sumData = table2array(sumData) .* (-1);
+
+%% Experiment Rupture Data
 ruptureData = readtable("Raw Rupture Values.xlsx"); % Uploaded Data
 t = ruptureData(:,1); % Time extraction
 voltageData = ruptureData(:,2); % Voltage extraction
@@ -35,9 +49,20 @@ else
 end
 disp(['p-value: ', num2str(p)]);
 
-%% Raw Data Graphs
-figure
+%% Raw Control Data
 
+figure;
+
+subplot(3,1,1)
+plot(tc, xData);
+subplot(3,1,2)
+plot(tc,yData);
+subplot(3,1,3)
+plot(tc,sumData);
+
+%% Raw Data Graphs
+
+figure;
 subplot(3,1,1)
 plot(t,voltageData)
 title("Voltage Vs. Time")
@@ -76,7 +101,7 @@ ylabel('Probability Density');
 % Fit Graph Individual
 subplot(2,1,2);
 plot (x, poissonPDF, 'r-', 'LineWidth', 2);
-title('Force Data Fit')
+title('Force Data Fit');
 xlabel('Event Counts');
 ylabel('Probability Density');
 
