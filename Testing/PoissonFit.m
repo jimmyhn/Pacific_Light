@@ -1,36 +1,41 @@
 clear; clc; close all;
-ruptureData = readtable("Raw Rupture Values.xlsx");
-t = ruptureData(:,1);
-voltageData = ruptureData(:,2);
-distanceData = ruptureData(:,3);
-forceData = ruptureData(:,4);
+ruptureData = readtable("Raw Rupture Values.xlsx"); % Uploaded Data
+t = ruptureData(:,1); % Time extraction
+voltageData = ruptureData(:,2); % Voltage extraction
+distanceData = ruptureData(:,3); % Distance extraction
+forceData = ruptureData(:,4); % Converted Force Data extraction
 fs = 1; 
+
+%% Array Conversion
 t = table2array(t);
-voltageData = table2array(voltageData);
+voltageData = table2array(voltageData); 
 distanceData = table2array(distanceData);
 forceData = table2array(forceData);
 
-%% Normalization
+%% Normalization of Force Data
 
 nForceData = (forceData - min(forceData)) / (max(forceData)- min(forceData));
 
 %% Poisson Distribution Calculation
-lambda = mean(forceData);
-disp(['Estimated lambda: ', num2str(lambda)]);
+lambda = mean(nForceData);
+disp(['Estimated lambda: ', num2str(lambda)]); % Displays our lambda value. Needs to be over 0 I believe
 x = 0:max(nForceData);
 
 poissonPDF = poisspdf(x,lambda); 
 
-%% Fit of Poisson Data to ForceData
+%% Poisson Distribution Check 
+
+% This ensures that our data is following Poisson Distribution Rules
 pd = fitdist(nForceData, 'Poisson');
 [h,p] = chi2gof(nForceData, 'CDF', pd);
 if h==0
     disp("data follows Poisson Dist.")
 else
-    disp('Data does not follow Poisson Dist.')
+    disp('Data does not follow Poisson Dist.') 
 end
 disp(['p-value: ', num2str(p)]);
 
+%% Raw Data Graphs
 figure
 
 subplot(3,1,1)
@@ -49,12 +54,29 @@ title("Force (pN) Vs. Time")
 xlabel('Time(s)');
 ylabel('Force(pN)');
 
+
+%% Poisson Distribution Graph
 figure
 histogram(nForceData, 'Normalization', 'pdf');
 hold on;
 plot (x, poissonPDF, 'r-', 'LineWidth', 2);
-title('Force(pN) vs. Poisson Distribution');
+title('Force Data Histogram & Fit');
 xlabel('Event Counts');
-ylabel('Probability');
-legend('ForceData', 'Poisson Distribution');
+ylabel('Probability Density');
 hold off;
+
+% Histogram Graph Individual
+figure
+subplot(2,1,1);
+histogram(nForceData, 'Normalization', 'pdf');
+title('Force Data Histogram')
+xlabel('Event Counts');
+ylabel('Probability Density');
+
+% Fit Graph Individual
+subplot(2,1,2);
+plot (x, poissonPDF, 'r-', 'LineWidth', 2);
+title('Force Data Fit')
+xlabel('Event Counts');
+ylabel('Probability Density');
+
