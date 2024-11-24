@@ -41,3 +41,40 @@ plot(t,forceData)
 title("Force (pN) Vs. Time")
 xlabel('Time(s)');
 ylabel('Force(pN)');
+
+% Filtering using analysis of polynomial fit of histogram data
+
+degree = 6;                                                                 % 6th degree polynomial fit of data for three curves
+p = polyfit(bin_centers, prob_density, degree);                             % Polyfit parameters
+
+
+densityFit = polyval(p, bin_centers);                                       % Generate polyfit curve
+
+figure;
+hold on
+
+bar(bin_centers, prob_density, 'FaceColor', 'k');
+plot(bin_centers, densityFit)
+title("Polynomial fit of Force Data Histogram")
+xlabel ('Rupture force(pN)')
+ylabel ('Estimated probability density (1/pN)')
+
+zeroIdx = find(densityFit(1:end-1) .* densityFit(2:end) < 0);               % Find indices of zeros in graph
+limitIdx = zeros(1, length(bin_centers));
+limitIdx(zeroIdx(2):zeroIdx(3)) = 1;                                        % Generate logical vector to isolate curve
+
+zeroCross = bin_centers(zeroIdx);
+binLimitValues = [zeroCross(2) zeroCross(3)];                               % For testing: output values of bin limits
+fprintf("The desired curve lies between %2.2f and %2.2f pN.", binLimitValues(1), binLimitValues(2))
+
+figure;
+
+prob_density_filtered = prob_density .* limitIdx;
+
+bar(bin_centers, prob_density_filtered, 'FaceColor', 'k');
+xlim([0 40]);
+ylim([0 0.1]);
+title("Isolated Curve of Single Bond Rupture Events")
+xlabel ('Rupture force(pN)')
+ylabel ('Estimated probability density (1/pN)')
+
