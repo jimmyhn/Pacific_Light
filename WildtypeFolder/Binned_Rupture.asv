@@ -1,0 +1,81 @@
+clear; clc; close all;
+
+classdef app1 < matlab.apps.AppBase
+
+    %% Load all Files 
+    properties (Access = public)
+        uifigure    matlab.ui.Figure
+        Dropdown    matlab.ui.control.Dropdown
+        LoadedButton    matlab.ui.Button
+        TextArea    matlab.ui.control.TextArea
+    
+    files = dir('*.mat');
+    numFiles = length(files);
+    name = cell(numFiles,1);
+    force = cell(numFiles,1);
+
+    methods (access = private)
+    
+    
+    for i=1:numFiles % This loop assigns the file with the forces
+        currentFile = files(i).name;
+        loadedData = load(currentFile);
+    
+        name{i} = currentFile;
+        force{i} = loadedData.F;
+    end
+extractedData = table(name, force);
+    
+
+
+%% Extract Files
+
+
+
+
+%{
+ruptureData = readtable("Raw Rupture Values.xlsx");
+t = ruptureData(:,1);
+voltageData = ruptureData(:,2);
+distanceData = ruptureData(:,3);
+forceData = ruptureData(:,4);
+%}
+%% Control Rupture Data
+%{
+t = table2array(t);
+voltageData = table2array(voltageData);
+distanceData = table2array(distanceData);
+forceData = table2array(forceData);
+posForceData = forceData(forceData>-1); 
+nForceData = (posForceData - min(posForceData)) / (max(posForceData)- min(posForceData)) * max(forceData) ;
+binWidth = .3;
+binEdges = 0:binWidth:max(forceData);
+
+bin_counts = histcounts(nForceData,binEdges);
+prob_density = bin_counts / (sum(bin_counts) * binWidth);
+bin_centers = binEdges(1:end-1) + binWidth / 2;
+
+figure;
+bar(bin_centers, prob_density, 'FaceColor', 'k');
+xlabel ('Rupture force(pN)')
+ylabel ('Estimated probability density (1/pN)')
+xlim([0 max(forceData)]);
+ylim([0 max(prob_density)*1.1]);
+
+figure;
+subplot(3,1,1)
+plot(t,voltageData)
+title("Voltage Vs. Time")
+xlabel('Time(s)');
+ylabel('Voltage');
+subplot(3,1,2)
+plot(t,distanceData)
+title("Distance (um) Vs. Time")
+xlabel('Time(s)');
+ylabel('Distance(um)');
+subplot(3,1,3)
+plot(t,forceData)
+title("Force (pN) Vs. Time")
+xlabel('Time(s)');
+ylabel('Force(pN)');
+%}

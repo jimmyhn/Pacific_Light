@@ -5,14 +5,17 @@ voltageData = ruptureData(:,2);
 distanceData = ruptureData(:,3);
 forceData = ruptureData(:,4);
 
+%% Control Rupture Data
+
 t = table2array(t);
 voltageData = table2array(voltageData);
 distanceData = table2array(distanceData);
 forceData = table2array(forceData);
-posForceData = forceData(forceData>-0.5); % Could be normalized as well but it creates a field of smaller forces for some reason
-nForceData = (posForceData - min(posForceData)) / (max(posForceData)- min(posForceData)) * 50 ;
-binWidth = .1;
-binEdges = 0:binWidth:40;
+posForceData = forceData(forceData>-1); % Could be normalized as well but it creates a field of smaller forces for some reason
+% nForceData = (forceData - min(forceData)) / (max(forceData)- min(forceData)) * 50 ;
+nForceData = (posForceData - min(posForceData)) / (max(posForceData)- min(posForceData)) * max(forceData) ;
+binWidth = .3;
+binEdges = 0:binWidth:max(forceData);
 
 bin_counts = histcounts(nForceData,binEdges);
 prob_density = bin_counts / (sum(bin_counts) * binWidth);
@@ -22,7 +25,7 @@ figure;
 bar(bin_centers, prob_density, 'FaceColor', 'k');
 xlabel ('Rupture force(pN)')
 ylabel ('Estimated probability density (1/pN)')
-xlim([0 40]);
+xlim([0 max(forceData)]);
 ylim([0 max(prob_density)*1.1]);
 
 figure;
