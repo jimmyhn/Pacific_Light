@@ -14,7 +14,7 @@ forceData = table2array(forceData);
 posForceData = forceData(forceData>-1); % Could be normalized as well but it creates a field of smaller forces for some reason
 % nForceData = (forceData - min(forceData)) / (max(forceData)- min(forceData)) * 50 ;
 nForceData = (posForceData - min(posForceData)) / (max(posForceData)- min(posForceData)) * max(forceData) ;
-binWidth = .3;
+binWidth = .4;
 binEdges = 0:binWidth:max(forceData);
 
 bin_counts = histcounts(nForceData,binEdges);
@@ -45,7 +45,7 @@ title("Force (pN) Vs. Time")
 xlabel('Time(s)');
 ylabel('Force(pN)');
 
-% Filtering using analysis of polynomial fit of histogram data
+%% Filtering using analysis of polynomial fit of histogram data
 
 degree = 6;                                                                 % 6th degree polynomial fit of data for three curves
 p = polyfit(bin_centers, prob_density, degree);                             % Polyfit parameters

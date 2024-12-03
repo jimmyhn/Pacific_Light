@@ -1,0 +1,40 @@
+clear; clc; close all;
+
+app = UI_RuptureData;
+
+
+selectedName = app.FileLoadDropDown.Value;
+
+            if ~isempty(selectedName)
+                selectedRow = app.extractedData(strcmp(app.extractedData.name, selectedName), :);
+                selectedForce = selectedRow.force{1};
+                time = 0:length(selectedRow.force{1}) - 1;
+    
+                plot(app.UIAxes3,time, selectedForce);
+                xlabel(app.UIAxes3, 'x-Axis');
+                ylabel(app.UIAxes3, 'Force(pN)');
+                xlim(app.UIAxes3,[0 max(time)])
+                rangeForce = max(selectedForce)-min(selectedForce);
+                if rangeForce>1
+                    ylim(app.UIAxes3,[min(selectedForce) max(selectedForce)]);
+                else
+                    ylim(app.UIAxes3,[0 max(selectedForce)*1.1]);
+                end
+                    
+    
+            posForceData = selectedForce(selectedForce>-1);
+
+            nForceData = (posForceData - min(posForceData)) / range(posForceData) * max(selectedForce);
+            binWidth = .3;
+            binEdges = min(selectedForce):binWidth:max(selectedForce);
+
+            bin_counts = histcounts(nForceData,binEdges);
+            prob_density = bin_counts / (sum(bin_counts) * binWidth);
+            bin_centers = binEdges(1:end-1) + binWidth / 2;
+            bar(app.UIAxes2, bin_centers, prob_density, 'FaceColor', 'k');
+            xlabel (app.UIAxes2, 'Rupture force(pN)')
+            ylabel (app.UIAxes2, 'Estimated probability density (1/pN)')
+            xlim(app.UIAxes2,[0 max(selectedForce)]);
+            ylim(app.UIAxes2,[0 max(prob_density)*1.1]);
+            end
+
