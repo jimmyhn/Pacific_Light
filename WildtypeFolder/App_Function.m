@@ -1,6 +1,6 @@
 clear; clc; close all;
 
-app = UI_RuptureData;
+app = A_UI_RuptureData;
 
 
 
