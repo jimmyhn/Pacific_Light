@@ -1,30 +1,94 @@
 close all; clear
+% Creating Structure To Store Everything
+master = struct();
+%%
+% Define the the folder datasets to analyze
+subfolder = "WildtypeFolder";
+listFolder = dir(subfolder);
+listFolder = listFolder([listFolder.isdir]);
+listFolder = listFolder(~ismember({listFolder.name},{'.','..'}));
 
-ruptureData = readtable("Raw Rupture Values.xlsx"); % Uploaded Data
-ruptureData = table2array(ruptureData);
+% Loops Starts
+oldDir1 = cd(subfolder);
+subfolder = listFolder(2).name;
+listDataset = dir(fullfile(subfolder,'*.mat'));
+oldDir2 = cd(subfolder);
+% Second Loop Starts
 
-time = ruptureData(:,1); % potential feature to add: figuring out the time from the spreadsheet automatically
-voltage = ruptureData(:,2); % potential feature to add: figuring out the voltageX from the spreadsheet automatically
+j=1;
+selectedFile = listDataset(34).name;
+master(j).name = selectedFile;
 
-% Conversion to Force(pN)
-distance = voltage.*(0.7); % 0.7 nm/volt conversion factor was found through experimental data (we can say was found in botvinick's paper)
-% create a function here to find the conversion factor from distance(nm) to force(pN); would need to follow up with botvinick for the method
-convertFactor = 32.5; % this conversion factor was found through botvinick's signal anaylsis (a good oppurtunity for someone to code)
-force = distance.*(convertFactor);
+data = load(selectedFile);
+forceData = data.F;
+
+N = length(forceData);
+ts = 0.01;
+fs = 1/ts;
+t = 0:ts:ts*(N-1);
+
+% Plot Force Data
+figureImage = figure;
+plot(t, forceData);
+xlabel('Time (s)');
+ylabel('Force (pN)');
+title(['Force Data - ', selectedFile]);
+frame = getframe(figureImage);
+imgData = frame.cdata;
+
+master(j).TimeVsForceGraph = imgData;
 
 
-posForceData = force(force>-0.5); % need to tinker around with 0.5
-nForceData = (posForceData - min(posForceData)) / (max(posForceData)- min(posForceData)) * max(force); % normalization of force data
-binWidth = 0.2;
-binEdges = 0:binWidth:max(force);
-bin_counts = histcounts(nForceData,binEdges);
-prob_density = bin_counts / (sum(bin_counts) * binWidth);
-bin_centers = binEdges(1:end-1) + binWidth / 2;
+% Plot Histogram
+posForceData = forceData(forceData > 0); % Filter negative forces
+normalizedForce = (posForceData - min(posForceData)) / range(posForceData) * max(posForceData);
+binWidth = 1;
+binEdges = min(posForceData):binWidth:max(posForceData);
+binCounts = histcounts(normalizedForce, binEdges);
+probDensity = binCounts / (sum(binCounts) * binWidth);
+binCenters = binEdges(1:end-1) + binWidth / 100;
 
-figure;
-bar(bin_centers, prob_density, 'FaceColor', 'k');
-xlabel ('Rupture force(pN)')
-ylabel ('Estimated probability density (1/pN)')
-xlim([0 max(force)]);
-ylim([0 max(prob_density)*1.1]); % need to tinker around with 1.1
+figureImage = figure;
+bar(binCenters, probDensity, 'FaceColor', 'k');
+xlabel('Force (pN)');
+ylabel('Estimated Probability Density');
+title(['Histogram - ', selectedFile]);
+xlim([0 max(forceData)]);
+ylim([0 max(probDensity)*1.1]);
+frame = getframe(figureImage);
+imgData = frame.cdata;
 
+master(j).ForceVsProbabilityHistogram = imgData;
+
+
+X = fft(forceData);
+X = abs(X/N);
+X = X(1:N/2+1);
+f = (0:(N/2))*(fs/N);
+
+fc = 5/fs; 
+[b, a] = butter(4, fc/(fs/2), 'low');
+y = filter(b, a, forceData);
+
+% Plot Force Data
+figureImage = figure;
+plot(t, y);
+xlabel('Time (s)');
+ylabel('Force (pN)');
+title(['Force Data - ', selectedFile]);
+
+posForceData = y(y > 0); % Filter negative forces
+normalizedForce = (posForceData - min(posForceData)) / range(posForceData) * max(posForceData);
+binWidth = 1;
+binEdges = min(posForceData):binWidth:max(posForceData);
+binCounts = histcounts(normalizedForce, binEdges);
+probDensity = binCounts / (sum(binCounts) * binWidth);
+binCenters = binEdges(1:end-1) + binWidth / 100;
+
+figureImage = figure;
+bar(binCenters, probDensity, 'FaceColor', 'k');
+xlabel('Force (pN)');
+ylabel('Estimated Probability Density');
+title(['Histogram - ', selectedFile]);
+xlim([0 max(y)]);
+ylim([0 max(probDensity)*1.1]);
