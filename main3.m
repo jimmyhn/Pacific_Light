@@ -10,13 +10,13 @@ listFolder = listFolder(~ismember({listFolder.name},{'.','..'}));
 
 % Loops Starts
 oldDir1 = cd(subfolder);
-subfolder = listFolder(2).name;
+subfolder = listFolder(1).name;
 listDataset = dir(fullfile(subfolder,'*.mat'));
 oldDir2 = cd(subfolder);
 % Second Loop Starts
 
 j=1;
-selectedFile = listDataset(34).name;
+selectedFile = listDataset(1).name;
 master(j).name = selectedFile;
 
 data = load(selectedFile);
@@ -58,41 +58,37 @@ ylim([0 max(probDensity)*1.1]);
 frame = getframe(figureImage);
 imgData = frame.cdata;
 
-master(j).ForceVsProbabilityHistogram = imgData;
 %% 
 binForces = [binCenters;probDensity];
 binForces(:,1:12) = []; % in the research paper found that generally 12 pN was where unspecified force peak ends
 % probably can susbstitute for kaitlyn's filter
 
-maxIndexes = [];
-
-start = 1;
-k = start;
-a = 1;
-while k ~= length(binForces)-1
-    for k = start:length(binForces)-1
-        if binForces(2,k)>binForces(2,k+1) % if current PD is greater than the next then...
-            maxIndexes(a) = k;
-            peakIndex = k;
-            a = a + 1;
-            break
-        end
-    end
-    for k = peakIndex:length(binForces)-1
-        if binForces(2,k) < binForces(2,k+1) % if current PD is less than the next then...
-            start = k;
-            break
-        end
-    end
-end
+                binForces = [binCenters;probDensity];
+                k = 1;
+                a = 1;
+                maxIndexes = [];
+                lookingForPeak = true;
+                
+                while k < length(binForces) - 1
+                    if lookingForPeak
+                        % Look for a peak
+                        if binForces(2, k) > binForces(2, k + 1)
+                            maxIndexes(a) = k;
+                            a = a + 1;
+                            lookingForPeak = false; % Switch to looking for a trough
+                        end
+                    else
+                        % Look for a trough
+                        if binForces(2, k) < binForces(2, k + 1)
+                            lookingForPeak = true; % Switch to looking for a peak
+                        end
+                    end
+                    k = k + 1;
+                end
 
 %find the biggest PD after unspecified PD peak is filtered
 for k = 1:length(maxIndexes)
     peakPD(k) = binForces(2,maxIndexes(k));
-end
-
-for k = 1:length(peakPD)
-    maxIndexes(k) = find(binCenters == peakPD(k));
 end
 
 % i give up
@@ -102,8 +98,8 @@ end
 %from their the app would let you see max peaks, and you would decide which
 % one was first bond, and enter in the bin number of that peak
 %% 
-binNumber = 29; 
-firstBondPDPeak = binForces(2,binNumber);
+binNumber = 8; 
+firstBondForcePeak = binForces(1,binNumber);
 
 for k = binNumber:-1:2 %finding the min limit of the first bond peak
     if binForces(2,k)<binForces(2,k-1) %if current is less than the previous (going left)
@@ -128,11 +124,17 @@ DFdata(DFdata(:,1)>maxFirstBondForce)= [];
 %coverting force data to distance (x = -F/k)
 distanceData = DFdata./data.k;
 DFdata = [distanceData,DFdata];
-
-ts = 0.5
-
-
-figure
-plot(DFdata(:,1),DFdata(:,2))
-xlabel('Extension (um)');
-ylabel('Force (pN)');
+            DFdata = sortrows(DFdata,1);
+            
+            xData = DFdata(:,1);
+            yData = DFdata(:,2);
+            
+            % Find the intersection points with y = firstBondPDPeak
+            intersectionIndex = find(yData >= firstBondForcePeak,1);
+            
+            % Plot the main data
+            figure
+            plot(app.Work, xData, yData);
+            xlabel(app.Work, 'Extension (um)');
+            ylabel(app.Work, 'Force (pN)');
+            title(app.Work, "Extension Vs Force Graph");

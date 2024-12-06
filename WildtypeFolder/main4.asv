@@ -1,0 +1,57 @@
+            selectedFile = "WT_BB94_9.mat";
+            data = load(selectedFile);
+            forceData = data.F;  % Assuming 'F' is the force data
+            time = 0:(length(forceData) - 1);  % Generate time points
+            N = length(forceData);
+            forceData = data.F;
+            ts = 0.01;
+            fs = 1/ts;
+            X = fft(forceData);
+            X = abs(X/N);
+
+            fc = 5/fs; 
+            [b, a] = butter(4, fc/(fs/2), 'low');
+            y = filter(b, a, forceData); 
+
+            figure
+            plot(time, forceData);
+            xlabel('Time (s)');
+            ylabel('Force (pN)');
+            title(['Force Data - ', selectedFile]);
+
+            figure
+            plot(time, y);
+            xlabel('Time (s)');
+            ylabel('Force (pN)');
+            title(['Filtered Force Data - ', selectedFile]);
+
+            posForceData = forceData(forceData > 0); % Filter negative forces
+            normalizedForce = (posForceData - min(posForceData)) / range(posForceData) * max(posForceData);
+            binWidth = 1;
+            binEdges = min(posForceData):binWidth:max(posForceData);
+            binCounts = histcounts(normalizedForce, binEdges);
+            probDensity = binCounts / (sum(binCounts) * binWidth);
+            binCenters = binEdges(1:end-1);
+            
+            binForces = [binCenters;probDensity];
+            maxIndexes = [];
+            start = 1;
+            k = start;
+            a = 1;
+            while k ~= length(binForces)-1
+                for k = start:length(binForces)-1
+                    if binForces(2,k)>binForces(2,k+1) % if current PD is greater than the next then...
+                        maxIndexes(a) = k;
+                        
+                        a = a + 1;
+                        break
+                    end
+                    peakIndex = k;
+                end
+                for k = peakIndex:length(binForces)-1
+                    if binForces(2,k) < binForces(2,k+1) % if current PD is less than the next then...
+                        start = k;
+                        break
+                    end
+                end
+            end

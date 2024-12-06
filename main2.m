@@ -10,13 +10,13 @@ listFolder = listFolder(~ismember({listFolder.name},{'.','..'}));
 
 % Loops Starts
 oldDir1 = cd(subfolder);
-subfolder = listFolder(2).name;
+subfolder = listFolder(1).name;
 listDataset = dir(fullfile(subfolder,'*.mat'));
 oldDir2 = cd(subfolder);
 % Second Loop Starts
 
 j=1;
-selectedFile = listDataset(34).name;
+selectedFile = listDataset(1).name;
 master(j).name = selectedFile;
 
 data = load(selectedFile);
@@ -65,27 +65,27 @@ binForces = [binCenters;probDensity];
 binForces(:,1:12) = []; % in the research paper found that generally 12 pN was where unspecified force peak ends
 % probably can susbstitute for kaitlyn's filter
 
-maxIndexes = [];
-
-start = 1;
-k = start;
-a = 1;
-while k ~= length(binForces)-1
-    for k = start:length(binForces)-1
-        if binForces(2,k)>binForces(2,k+1) % if current PD is greater than the next then...
-            maxIndexes(a) = k;
-            peakIndex = k;
-            a = a + 1;
-            break
-        end
-    end
-    for k = peakIndex:length(binForces)-1
-        if binForces(2,k) < binForces(2,k+1) % if current PD is less than the next then...
-            start = k;
-            break
-        end
-    end
-end
+                binForces = [binCenters;probDensity];
+                k = 1;
+                a = 1;
+                maxIndexes = [];
+                lookingForPeak = true;
+                while k < length(binForces) - 1
+                    if lookingForPeak
+                        % Look for a peak
+                        if binForces(2, k) > binForces(2, k + 1)
+                            maxIndexes(a) = k;
+                            a = a + 1;
+                            lookingForPeak = false; % Switch to looking for a trough
+                        end
+                    else
+                        % Look for a trough
+                        if binForces(2, k) < binForces(2, k + 1)
+                            lookingForPeak = true; % Switch to looking for a peak
+                        end
+                    end
+                    k = k + 1;
+                end
 
 %find the biggest PD after unspecified PD peak is filtered
 for k = 1:length(maxIndexes)
