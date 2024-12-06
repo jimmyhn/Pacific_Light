@@ -60,7 +60,6 @@ imgData = frame.cdata;
 
 master(j).ForceVsProbabilityHistogram = imgData;
 %% 
-
 binForces = [binCenters;probDensity];
 binForces(:,1:12) = []; % in the research paper found that generally 12 pN was where unspecified force peak ends
 % probably can susbstitute for kaitlyn's filter
@@ -101,7 +100,7 @@ end
 % after the unspecified filter had gotten rid of the big peak
 
 %from their the app would let you see max peaks, and you would decide which
-% one was first bond, and enter in the bin number
+% one was first bond, and enter in the bin number of that peak
 %% 
 binNumber = 29; 
 firstBondPDPeak = binForces(2,binNumber);
@@ -113,19 +112,27 @@ for k = binNumber:-1:2 %finding the min limit of the first bond peak
     end
 end
 
-for k = binNumber:length(binforces)-1 %finding the max limit of the first bond peak
+for k = binNumber:length(binForces)-1 %finding the max limit of the first bond peak
     if binForces(2,k)<binForces(2,k+1) %if current is less than the next (going right)
         maxFirstBondForce = binForces(1,k);
         break
     end
 end
 
+% filtering out forces not in bounds
+DFdata = posForceData;
+%{
+DFdata(DFdata(:,1)<minFirstBondForce)= [];
+DFdata(DFdata(:,1)>maxFirstBondForce)= [];
+%}
 %coverting force data to distance (x = -F/k)
+distanceData = DFdata./data.k;
+DFdata = [distanceData,DFdata];
 
-distanceData = [];
-for k = 1:length(forceData)
-    distanceData(k) = -forceData(k)/data.k
-end
+ts = 0.5
 
-FDdata = [distanceData;forceData];
 
+figure
+plot(DFdata(:,1),DFdata(:,2))
+xlabel('Extension (um)');
+ylabel('Force (pN)');
