@@ -115,3 +115,12 @@ for m = 1:length(MarginsMin)
     end
 end
 % won't work cause historgrams are too different 
+
+for k = 1:length(DFdata)
+    if DFdata(k,2) < minFirstBondForce
+        DFdata(k,:) = [];
+    end
+    if DFdata(k,2) > maxFirstBondForce
+        DFdata(k,:) = [];
+    end
+end
